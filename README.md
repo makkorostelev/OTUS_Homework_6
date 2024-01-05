@@ -18,7 +18,7 @@ admin_ip = "51.250.43.184"
 lb_ip = "51.250.34.215"
 ```
 
-Than you can go to http://lb_ip and add your wordpress template to that installation :\
+Then you can go to http://lb_ip and add your wordpress template to that installation :\
 ![Wordpress](https://github.com/makkorostelev/OTUS_Homework_5/blob/main/Screenshots/wordpress.png)
 Even if one of nginx or postgresql servers will be shutdown everything will work as it should
 
