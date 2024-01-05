@@ -1,4 +1,4 @@
-# OTUS_Homework_5
+# OTUS_Homework_6
  
 Project creates one YC LB, 2 nginx proxy server, 2 nginx+php-fpm+wordpress backends and postgresql cluster.\
 To work with the project you need to write your data into variables.tf.\
