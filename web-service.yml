@@ -1,0 +1,156 @@
+---
+- hosts: backend
+  become: yes
+  gather_facts: true
+  vars:
+    pakages:
+      - nginx
+      - php8.1-fpm
+      - php-curl
+      - php-json
+      - php-gd
+      - php-mbstring
+      - php-intl
+      - php-bcmath
+      - php-bz2
+      - php-readline
+      - php-zip
+      - php-xml
+      - php-xmlrpc
+      - php-soap
+      - php-imagick
+      - php-mysql
+      - php-pgsql
+  tasks:
+    - name: Install pakages
+      apt:
+        pkg: "{{pakages}}"
+        state: latest
+        update_cache: yes
+    - name: Download and extracting WordPress
+      unarchive:
+        src: https://ru.wordpress.org/latest-ru_RU.tar.gz
+        dest: /var/www
+        remote_src: yes
+    - name: Copy wp-config.php
+      copy:
+        src: ./wp-config.php
+        dest: /var/www/wordpress
+        owner: root
+        group: root
+        mode: "0644"
+    - name: Editing wp-config.php
+      lineinfile: dest=/var/www/wordpress/wp-config.php regexp='^WP_SITEURL' line='define( \'WP_SITEURL\', \'http://{{ public_ip }}\' );'
+    - name: Copy wp.conf
+      copy:
+        src: ./wp.conf
+        dest: /etc/nginx/sites-available/wp.conf
+        owner: root
+        group: root
+        mode: "0644"
+    - name: Create symlink wp.conf
+      file:
+        src: /etc/nginx/sites-available/wp.conf
+        dest: /etc/nginx/sites-enabled/wp.conf
+        state: link
+    - name: Download and extracting pg4wp
+      unarchive:
+        src: https://github.com/PostgreSQL-For-Wordpress/postgresql-for-wordpress/archive/refs/tags/v3.1.tar.gz
+        dest: /tmp/
+        remote_src: yes
+    - name: Copy pg4wp 
+      copy:
+        src: /tmp/postgresql-for-wordpress-3.1/pg4wp
+        dest: /var/www/wordpress/wp-content/
+        remote_src: yes      
+    - name: Copy db.php 
+      copy:
+        src: /tmp/postgresql-for-wordpress-3.1/pg4wp/db.php
+        dest: /var/www/wordpress/wp-content/
+        remote_src: yes
+    - name: Delete default.conf
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+    - name: Recursively change ownership of wordpress directory
+      file:
+        path: /var/www/wordpress
+        state: directory
+        recurse: yes
+        owner: www-data
+        group: www-data
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+
+- hosts: nginx
+  become: yes
+  gather_facts: false
+  tasks:
+    - name: Install Nginx
+      apt:
+        pkg: nginx
+        state: latest
+    - name: Copy nginx.conf
+      copy:
+        src: ./nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: "0644"
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
+
+
+- hosts: admin
+  become: yes
+  gather_facts: false
+  tasks:
+    - name: Copy private_key
+      copy:
+        src: "{{ private_key }}"
+        dest: /home/ubuntu/.ssh/
+        owner: ubuntu
+        group: ubuntu
+        mode: "0600"
+
+    # - name: Install Ansible requirements
+    #   apt:
+    #     pkg: 
+    #       - python3-pip
+    #       - sshpass
+    #       - git
+    #     state: latest
+    #     update_cache: yes
+    # - name: Install Ansible
+    #   pip:
+    #     name: ansible
+    # - name: Create a directory if it does not exist
+    #   ansible.builtin.file:
+    #     path: /home/ubuntu/postgresql_cluster
+    #     state: directory
+    #     mode: '0775'
+    # - name: Clone a repo postgresql_cluster
+    #   git:
+    #     repo: https://github.com/vitabaks/postgresql_cluster.git
+    #     dest: /home/ubuntu/postgresql_cluster/
+    # - name: Copy inventory file
+    #   copy:
+    #     src: ./postgresql_cluster/inventory
+    #     dest: /home/ubuntu/postgresql_cluster/inventory
+    #     owner: root
+    #     group: root
+    #     mode: "0666"
+    # - name: Disable pgbouncer
+    #   replace:
+    #     path: /home/ubuntu/postgresql_cluster/vars/main.yml
+    #     regexp: 'pgbouncer_install: true'
+    #     replace: 'pgbouncer_install: false'
+    # - name: Add wp_user
+    #   replace:
+    #     path: /home/ubuntu/postgresql_cluster/vars/main.yml
+    #     regexp: '#  - { name: "monitoring_auth_username", password: "monitoring_user_password", flags: "LOGIN", role: "pg_monitor" }'
+    #     replace: '  - { name: "wp_user", password: "wp_password", flags: "SUPERUSER" }'
