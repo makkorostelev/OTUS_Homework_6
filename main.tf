@@ -21,6 +21,7 @@ resource "local_file" "hosts-ini" {
     backend_instances = local.backend_instances
     nginx_instances   = local.nginx_instances
     admin_instances   = local.admin_instances
+    private_key_path  = var.private_key_path
   })
 }
 

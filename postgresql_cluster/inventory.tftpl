@@ -54,7 +54,7 @@ ansible_connection='ssh'
 ansible_ssh_port='22'
 ansible_user='ubuntu'
 #ansible_ssh_pass='secretpassword'  # "sshpass" package is required for use "ansible_ssh_pass"
-ansible_ssh_private_key_file="/home/ubuntu/.ssh/id_ed25519"
+ansible_ssh_private_key_file="${private_key_path}"
 #ansible_python_interpreter='/usr/bin/python3'  # is required for use python3
 ansible_ssh_common_args='-o ProxyCommand="ssh -p 22 -W %h:%p -q ubuntu@${admin_instances}"'
 
